@@ -1,0 +1,7 @@
+<Project>
+	<PropertyGroup>
+		<Authors>dotRMDY</Authors>
+		<RepositoryUrl>https://dev.azure.com/Growandglow/dotRMDY/_git/dotrmdy-syncsupport</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+</Project>
