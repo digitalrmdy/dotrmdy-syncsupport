@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace dotRMDY.SyncSupport.Shared.Models
 {
@@ -11,23 +12,25 @@ namespace dotRMDY.SyncSupport.Shared.Models
 	{
 		private static readonly CallResult _noConnectionCallResult = new(CallResultStatus.NoConnection);
 		private static readonly CallResult _notAuthenticatedCallResult = new(CallResultStatus.NotAuthenticated);
-		private static readonly CallResult _successCallResult = new(CallResultStatus.Success);
 		private static readonly CallResult _timeOutCallResult = new(CallResultStatus.TimeOut);
 
-		protected CallResult(CallResultStatus status)
+		protected CallResult(CallResultStatus status, HttpStatusCode? httpStatusCode = null)
 		{
 			Status = status;
+			StatusCode = httpStatusCode;
 		}
 
-		protected CallResult(CallResultError error)
+		protected CallResult(CallResultError error, HttpStatusCode? httpStatusCode = null)
 		{
 			Status = CallResultStatus.Error;
+			StatusCode = httpStatusCode;
 			Error = error;
 		}
 
 		protected CallResult(CallResult callResult)
 		{
 			Status = callResult.Status;
+			StatusCode = callResult.StatusCode;
 			Error = callResult.Error;
 		}
 
@@ -38,10 +41,26 @@ namespace dotRMDY.SyncSupport.Shared.Models
 		public CallResultStatus Status { get; }
 
 		/// <summary>
+		///		Gets the status code.
+		/// </summary>
+		/// <value>The status code.</value>
+		public HttpStatusCode? StatusCode { get; }
+
+		/// <summary>
 		///     Gets the error.
 		/// </summary>
 		/// <value>The error.</value>
 		public CallResultError? Error { get; }
+
+		public static CallResult CreateSuccess(HttpStatusCode statusCode)
+		{
+			return new CallResult(CallResultStatus.Success, statusCode);
+		}
+
+		public static CallResult CreateError(CallResultError error, HttpStatusCode? statusCode = null)
+		{
+			return new CallResult(error, statusCode);
+		}
 
 		public static CallResult CreateNoConnection()
 		{
@@ -53,25 +72,14 @@ namespace dotRMDY.SyncSupport.Shared.Models
 			return _notAuthenticatedCallResult;
 		}
 
-		public static CallResult CreateError(CallResultError error)
-		{
-			return new CallResult(error);
-		}
-
-		public static CallResult CreateSuccess()
-		{
-			return _successCallResult;
-		}
-
 		public static CallResult CreateTimeOutError()
 		{
 			return _timeOutCallResult;
 		}
 
-		public static CallResult Combine(IEnumerable<CallResult> callResults)
+		public static CallResult Combine(ICollection<CallResult> callResults)
 		{
 			var callResultErrors = callResults.Select(cr => cr.Error).OfType<CallResultError>().ToArray();
-
 			if (callResultErrors.Any())
 			{
 				return new CallResult(new CombinedCallResultError(callResultErrors));
@@ -110,6 +118,11 @@ namespace dotRMDY.SyncSupport.Shared.Models
 			return Status != CallResultStatus.Success;
 		}
 
+		public bool Errored()
+		{
+			return Status == CallResultStatus.Error;
+		}
+
 		public bool NoConnection()
 		{
 			return Status == CallResultStatus.NoConnection;
@@ -123,11 +136,6 @@ namespace dotRMDY.SyncSupport.Shared.Models
 		public bool Authenticated()
 		{
 			return Status != CallResultStatus.NotAuthenticated;
-		}
-
-		public bool Errored()
-		{
-			return Status == CallResultStatus.Error;
 		}
 
 		public bool TimeOut()
@@ -145,8 +153,9 @@ namespace dotRMDY.SyncSupport.Shared.Models
 		///     Initializes a new instance of the <see cref="T:BelgianRail.Edrive.Components.MvvmCross.Core.Shared.Helpers.CallResult`1" /> class.
 		/// </summary>
 		/// <param name="status">Status.</param>
+		/// <param name="httpStatusCode">Status code.</param>
 		/// <param name="data">Data.</param>
-		private CallResult(CallResultStatus status, TData? data = default) : base(status)
+		protected CallResult(CallResultStatus status, HttpStatusCode? httpStatusCode = null, TData? data = default) : base(status, httpStatusCode)
 		{
 			Data = data;
 		}
@@ -155,8 +164,9 @@ namespace dotRMDY.SyncSupport.Shared.Models
 		///     Initializes a new instance of the <see cref="T:BelgianRail.Edrive.Components.MvvmCross.Core.Shared.Helpers.CallResult`1" /> class.
 		/// </summary>
 		/// <param name="error">Error.</param>
+		/// <param name="httpStatusCode">Status code.</param>
 		/// <param name="data">Data.</param>
-		private CallResult(CallResultError error, TData? data = default) : base(error)
+		protected CallResult(CallResultError error, HttpStatusCode? httpStatusCode = null, TData? data = default) : base(error, httpStatusCode)
 		{
 			Data = data;
 		}
@@ -177,13 +187,25 @@ namespace dotRMDY.SyncSupport.Shared.Models
 		{
 			return Status switch
 			{
-				CallResultStatus.Success => mappedData != null ? CreateSuccess(mappedData) : throw new NullReferenceException(nameof(mappedData)),
+				CallResultStatus.Success => StatusCode != null && mappedData != null
+					? CreateSuccess(StatusCode.Value, mappedData)
+					: throw new NullReferenceException(nameof(mappedData)),
 				CallResultStatus.Error => CreateError<TMappedType>(Error!),
 				CallResultStatus.NoConnection => CreateNoConnection<TMappedType>(),
 				CallResultStatus.NotAuthenticated => CreateNotAuthenticated<TMappedType>(),
 				CallResultStatus.TimeOut => CreateTimeOutError<TMappedType>(),
 				_ => throw new ArgumentOutOfRangeException()
 			};
+		}
+
+		public static CallResult<T> CreateSuccess<T>(HttpStatusCode statusCode, T data)
+		{
+			return new CallResult<T>(CallResultStatus.Success,  statusCode, data);
+		}
+
+		public static CallResult<T> CreateError<T>(CallResultError error, HttpStatusCode? statusCode = null)
+		{
+			return new CallResult<T>(error, statusCode);
 		}
 
 		public static CallResult<T> CreateNoConnection<T>()
@@ -194,16 +216,6 @@ namespace dotRMDY.SyncSupport.Shared.Models
 		public static CallResult<T> CreateNotAuthenticated<T>()
 		{
 			return new CallResult<T>(CallResultStatus.NotAuthenticated);
-		}
-
-		public static CallResult<T> CreateError<T>(CallResultError error)
-		{
-			return new CallResult<T>(error);
-		}
-
-		public static CallResult<T> CreateSuccess<T>(T data)
-		{
-			return new CallResult<T>(CallResultStatus.Success, data);
 		}
 
 		public static CallResult<T> CreateTimeOutError<T>()

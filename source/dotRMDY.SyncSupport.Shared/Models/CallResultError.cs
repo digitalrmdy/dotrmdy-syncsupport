@@ -7,14 +7,15 @@ namespace dotRMDY.SyncSupport.Shared.Models
 	/// </summary>
 	public class CallResultError
 	{
-		public CallResultError(string technicalMessage, string? code = null, string? message = null)
+		public CallResultError(string? code, string? message, string technicalMessage)
 		{
 			Code = code;
 			Message = message;
 			TechnicalMessage = technicalMessage;
 		}
 
-		public CallResultError(Exception exc) : this(exc.Message, exc.GetType().Name)
+		public CallResultError(Exception ex)
+			: this(null, ex.GetType().Name, ex.Message)
 		{
 		}
 

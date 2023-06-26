@@ -8,6 +8,7 @@ using dotRMDY.SyncSupport.Shared.Models;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Refit;
 
 namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 {
@@ -30,24 +31,35 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 		}
 
 		protected virtual async Task<CallResult<T>> ExecuteCall<T>(
-			Func<Task<T>> call,
+			Func<Task<IApiResponse<T>>> call,
 			[CallerMemberName] string? callerMethod = null)
 			where T : class
 		{
-			Logger.LogInformation("Executing request {CallerMethod}", callerMethod ?? string.Empty);
+			callerMethod ??= "N/A";
+			Logger.LogInformation("Executing request {CallerMethod}", callerMethod);
 
 			try
 			{
 				return await PolicyProvider.BuildResultPolicy<T>().ExecuteAsync(async () =>
 				{
 					var result = await call.Invoke().ConfigureAwait(false);
-					Logger.LogInformation("Request completed {CallerMethod}", callerMethod ?? string.Empty);
-					return CallResult<T>.CreateSuccess(result);
+
+					if ( result.Error != null)
+					{
+						throw result.Error;
+					}
+
+					Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
+
+					return result.Content == null
+						? (CallResult<T>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
+						: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
 				});
 			}
 			catch (Exception ex) when (ex is OperationCanceledException or WebException or SocketException)
 			{
-				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}", typeof(T).Name,
+				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}",
+					typeof(T).Name,
 					callerMethod);
 
 				return CallResult<T>.CreateTimeOutError<T>();
@@ -72,23 +84,35 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 			string? callerMethod,
 			[NotNullWhen(true)] out CallResult<T>? callResult)
 		{
+			if (exception is ApiException apiException)
+			{
+				callResult = CallResult<T>.CreateError<T>(new CallResultError(apiException), apiException.StatusCode);
+				return true;
+			}
+
 			callResult = default;
 			return false;
 		}
 
 		protected virtual async Task<CallResult> ExecuteCall(
-			Func<Task> call,
+			Func<Task<IApiResponse>> call,
 			[CallerMemberName] string? callerMethod = null)
 		{
-			Logger.LogInformation("Executing request {CallerMethod}", callerMethod ?? string.Empty);
+			callerMethod ??= "N/A";
+			Logger.LogInformation("Executing request {CallerMethod}", callerMethod);
 
 			try
 			{
 				return await VoidPolicy.ExecuteAsync(async () =>
 				{
-					await call.Invoke().ConfigureAwait(false);
-					Logger.LogInformation("Request completed {CallerMethod}", callerMethod ?? string.Empty);
-					return CallResult.CreateSuccess();
+					var result = await call.Invoke().ConfigureAwait(false);
+					if ( result.Error != null)
+					{
+						throw result.Error;
+					}
+
+					Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
+					return CallResult.CreateSuccess(result.StatusCode);
 				});
 			}
 			catch (Exception ex) when (ex is OperationCanceledException or WebException or SocketException)
@@ -116,6 +140,12 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 			string? callerMethod,
 			[NotNullWhen(true)] out CallResult? callResult)
 		{
+			if (exception is ApiException apiException)
+			{
+				callResult = CallResult.CreateError(new CallResultError(apiException), apiException.StatusCode);
+				return true;
+			}
+
 			callResult = default;
 			return false;
 		}

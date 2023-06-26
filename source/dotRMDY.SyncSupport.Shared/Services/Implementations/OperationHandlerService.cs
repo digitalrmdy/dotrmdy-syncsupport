@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using dotRMDY.Components.Shared.Services;
@@ -42,7 +43,7 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 				var allPendingOperations = await _operationService.GetAllOperations();
 				if (allPendingOperations.Count == 0)
 				{
-					return CallResult.CreateSuccess();
+					return CallResult.CreateSuccess(HttpStatusCode.OK);
 				}
 
 				List<CallResult> operationCallResults = new(allPendingOperations.Count);
@@ -52,10 +53,12 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 					{
 						operationCallResults.Add(await HandleOperation(operation));
 					}
-					catch (Exception e)
+					catch (Exception ex)
 					{
-						_logger.LogError(e, "Error while handling operation {OperationId}", operation.Id);
+						_logger.LogError(ex, "Error while handling operation {OperationId}", operation.Id);
+
 						await MarkOperationAsFailed(operation);
+						operationCallResults.Add(CallResult.CreateError(new CallResultError(ex)));
 					}
 				}
 
