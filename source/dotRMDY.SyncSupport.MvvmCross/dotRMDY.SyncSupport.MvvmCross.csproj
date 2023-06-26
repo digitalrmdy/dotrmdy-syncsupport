@@ -8,7 +8,8 @@
 
 	<PropertyGroup>
 		<Description>
-			TODO: Add description
+			Provides integration for easily registering existing implementations, provided by dotRMDY.SyncSupport.Shared,
+			with MvvmCross.
 		</Description>
 	</PropertyGroup>
 
