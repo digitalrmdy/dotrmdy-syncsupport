@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 {
-	public class OperationHandlerService : IOperationHandlerService, IDisposable
+	public abstract class OperationHandlerService : IOperationHandlerService, IDisposable
 	{
 		private readonly ILogger<OperationHandlerService> _logger;
 		private readonly IOperationService _operationService;
@@ -86,16 +86,32 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 			Task.Run(HandlePendingOperations);
 		}
 
-		protected virtual async Task<CallResult> HandleOperation<T>(T operation) where T : Operation
+		protected virtual async Task<CallResult> HandleOperation(Operation operation)
 		{
 			var constructedHandlerType = typeof(IOperationHandler<>).MakeGenericType(operation.GetType());
-			if (_resolver.Resolve(constructedHandlerType) is not IOperationHandler<T> resolvedHandler)
+			var resolvedHandlerRaw = _resolver.Resolve(constructedHandlerType);
+			if (!constructedHandlerType.IsInstanceOfType(resolvedHandlerRaw))
 			{
 				throw new InvalidOperationException($"Could not resolve handler for operation of type {operation.GetType().FullName}");
 			}
 
-			var handlerCallResult = await resolvedHandler.HandleOperation(operation);
-			return await ProcessOperationCallResult(handlerCallResult, operation);
+			var handlerCallResult = await ((Task<CallResult>) constructedHandlerType.GetMethod(nameof(IOperationHandler<Operation>.HandleOperation))!
+				.Invoke(resolvedHandlerRaw, new object[] { operation })).ConfigureAwait(false);
+			return await ProcessOperationCallResult(handlerCallResult, operation).ConfigureAwait(false);
+		}
+
+		protected abstract Task<CallResult> HandleOperationRaw(Operation operation);
+
+		protected virtual async Task<CallResult> HandleOperation<TOperation>(TOperation operation) where TOperation : Operation
+		{
+			var resolvedHandler = _resolver.Resolve<IOperationHandler<TOperation>>();
+			if (resolvedHandler is null)
+			{
+				throw new InvalidOperationException($"Could not resolve handler for operation of type {operation.GetType().FullName}");
+			}
+
+			var handlerCallResult = await resolvedHandler.HandleOperation(operation).ConfigureAwait(false);
+			return await ProcessOperationCallResult(handlerCallResult, operation).ConfigureAwait(false);
 		}
 
 		protected virtual async Task<CallResult> ProcessOperationCallResult(CallResult callResult, Operation operation)
