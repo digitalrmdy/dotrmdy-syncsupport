@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.MvvmCro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.MvvmCross.UnitTests", "source\dotRMDY.SyncSupport.MvvmCross.UnitTests\dotRMDY.SyncSupport.MvvmCross.UnitTests.csproj", "{F258F2BB-328A-4449-A107-17DE3763A173}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.Shared.SourceGenerator", "source\dotRMDY.SyncSupport.Shared.SourceGenerator\dotRMDY.SyncSupport.Shared.SourceGenerator.csproj", "{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,5 +36,9 @@ Global
 		{F258F2BB-328A-4449-A107-17DE3763A173}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F258F2BB-328A-4449-A107-17DE3763A173}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F258F2BB-328A-4449-A107-17DE3763A173}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
