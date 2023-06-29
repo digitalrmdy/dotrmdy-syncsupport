@@ -51,7 +51,7 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 				{
 					try
 					{
-						operationCallResults.Add(await HandleOperation(operation));
+						operationCallResults.Add(await HandleOperationRaw(operation));
 					}
 					catch (Exception ex)
 					{
@@ -84,20 +84,6 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 		protected virtual void OperationAddedMessageHandler(object arg1, OperationAddedMessage arg2)
 		{
 			Task.Run(HandlePendingOperations);
-		}
-
-		protected virtual async Task<CallResult> HandleOperation(Operation operation)
-		{
-			var constructedHandlerType = typeof(IOperationHandler<>).MakeGenericType(operation.GetType());
-			var resolvedHandlerRaw = _resolver.Resolve(constructedHandlerType);
-			if (!constructedHandlerType.IsInstanceOfType(resolvedHandlerRaw))
-			{
-				throw new InvalidOperationException($"Could not resolve handler for operation of type {operation.GetType().FullName}");
-			}
-
-			var handlerCallResult = await ((Task<CallResult>) constructedHandlerType.GetMethod(nameof(IOperationHandler<Operation>.HandleOperation))!
-				.Invoke(resolvedHandlerRaw, new object[] { operation })).ConfigureAwait(false);
-			return await ProcessOperationCallResult(handlerCallResult, operation).ConfigureAwait(false);
 		}
 
 		protected abstract Task<CallResult> HandleOperationRaw(Operation operation);
