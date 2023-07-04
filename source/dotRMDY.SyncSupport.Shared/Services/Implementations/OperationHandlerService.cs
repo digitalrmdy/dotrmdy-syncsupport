@@ -86,7 +86,10 @@ namespace dotRMDY.SyncSupport.Shared.Services.Implementations
 			Task.Run(HandlePendingOperations);
 		}
 
-		protected abstract Task<CallResult> HandleOperationRaw(Operation operation);
+		protected virtual Task<CallResult> HandleOperationRaw(Operation operation)
+		{
+			throw new NotSupportedException($"Operation type '{operation.GetType().FullName}' is not supported.");
+		}
 
 		protected virtual async Task<CallResult> HandleOperation<TOperation>(TOperation operation) where TOperation : Operation
 		{
