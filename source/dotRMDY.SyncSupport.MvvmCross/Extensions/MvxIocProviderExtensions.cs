@@ -1,5 +1,5 @@
-using dotRMDY.SyncSupport.Shared.Services;
-using dotRMDY.SyncSupport.Shared.Services.Implementations;
+using dotRMDY.SyncSupport.Services;
+using dotRMDY.SyncSupport.Services.Implementations;
 using JetBrains.Annotations;
 using MvvmCross.IoC;
 

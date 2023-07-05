@@ -2,15 +2,15 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{D8083ACC-147F-4DD9-B438-5E9230A0122F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.Shared", "source\dotRMDY.SyncSupport.Shared\dotRMDY.SyncSupport.Shared.csproj", "{97B9A077-7D39-4A2D-962A-C62DF5DE7FD6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport", "source\dotRMDY.SyncSupport\dotRMDY.SyncSupport.csproj", "{97B9A077-7D39-4A2D-962A-C62DF5DE7FD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.Shared.UnitTests", "source\dotRMDY.SyncSupport.Shared.UnitTests\dotRMDY.SyncSupport.Shared.UnitTests.csproj", "{FAC93157-2171-4C4B-97AD-C5F7BA787281}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.UnitTests", "source\dotRMDY.SyncSupport.UnitTests\dotRMDY.SyncSupport.UnitTests.csproj", "{FAC93157-2171-4C4B-97AD-C5F7BA787281}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.MvvmCross", "source\dotRMDY.SyncSupport.MvvmCross\dotRMDY.SyncSupport.MvvmCross.csproj", "{81A8CC16-841E-44FB-A0CE-CADD578506A7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.MvvmCross.UnitTests", "source\dotRMDY.SyncSupport.MvvmCross.UnitTests\dotRMDY.SyncSupport.MvvmCross.UnitTests.csproj", "{F258F2BB-328A-4449-A107-17DE3763A173}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.Shared.SourceGenerator", "source\dotRMDY.SyncSupport.Shared.SourceGenerator\dotRMDY.SyncSupport.Shared.SourceGenerator.csproj", "{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotRMDY.SyncSupport.SourceGenerator", "source\dotRMDY.SyncSupport.SourceGenerator\dotRMDY.SyncSupport.SourceGenerator.csproj", "{C0E1F307-5E4B-4F9C-A27F-006706E6CFBF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

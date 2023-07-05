@@ -1,7 +1,7 @@
 using dotRMDY.SyncSupport.MvvmCross.Extensions;
 using dotRMDY.SyncSupport.MvvmCross.UnitTests.TestHelpers;
-using dotRMDY.SyncSupport.Shared.Services;
-using dotRMDY.SyncSupport.Shared.Services.Implementations;
+using dotRMDY.SyncSupport.Services;
+using dotRMDY.SyncSupport.Services.Implementations;
 using FakeItEasy;
 using MvvmCross.IoC;
 using Xunit;
