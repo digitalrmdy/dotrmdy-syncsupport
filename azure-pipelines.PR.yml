@@ -24,7 +24,6 @@ pr:
   branches:
     include:
       - main
-      - develop
 
 stages:
   - stage: ubuntu_latest

@@ -6,7 +6,7 @@ using Nuke.Common.CI.AzurePipelines;
     AutoGenerate = false,
     FetchDepth = 0,
     TriggerBatch = true,
-    PullRequestsBranchesInclude = new[] { "main", "develop" },
+    PullRequestsBranchesInclude = new[] { "main" },
     ImportVariableGroups = new[] { "dotRMDY-MyGet" },
     ImportSecrets = new[] { nameof(MyGetUsername), nameof(MyGetApiKey) },
     InvokedTargets = new[] { nameof(Pack) },
