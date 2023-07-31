@@ -39,7 +39,7 @@ partial class Build : NukeBuild
         });
 
     Target Restore => _ => _
-        .DependsOn(UpdateMyGetFeedCredentials)
+        .DependsOn(UpdateFeedCredentials)
         .Executes(() =>
         {
             DotNetRestore(s => s
@@ -47,6 +47,10 @@ partial class Build : NukeBuild
                 .EnableDeterministic()
                 .EnableContinuousIntegrationBuild());
         });
+
+    Target UpdateFeedCredentials => _ => _
+	    .Unlisted()
+	    .DependsOn(UpdateAzureArtifactsFeedCredentials);
 
     Target Compile => _ => _
         .DependsOn(Restore)
@@ -90,4 +94,7 @@ partial class Build : NukeBuild
                 .SetProperty("RepositoryCommit", GitRepository.Commit)
                 .SetOutputDirectory(ArtifactsDirectory));
         });
+
+    Target Publish => _ => _
+	    .DependsOn(PublishToAzureArtifacts);
 }

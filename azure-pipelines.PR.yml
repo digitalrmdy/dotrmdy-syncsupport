@@ -14,16 +14,8 @@
 # </auto-generated>
 # ------------------------------------------------------------------------------
 
-variables:
-  - group: dotRMDY-MyGet
-
 trigger:
   batch: true
-
-pr:
-  branches:
-    include:
-      - main
 
 stages:
   - stage: ubuntu_latest
@@ -35,15 +27,13 @@ stages:
       - job: Pack
         displayName: 'Pack'
         steps:
+          - task: NuGetAuthenticate@0
           - checkout: self
             fetchDepth: 0
           - task: CmdLine@2
             displayName: 'Run: Pack'
             inputs:
               script: './build.cmd Pack'
-            env:
-              MyGetUsername: $(MyGetUsername)
-              MyGetApiKey: $(MyGetApiKey)
           - task: PublishBuildArtifacts@1
             displayName: 'Publish: artifacts'
             inputs:
