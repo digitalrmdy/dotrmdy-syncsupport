@@ -50,7 +50,7 @@ partial class Build : NukeBuild
 
     Target UpdateFeedCredentials => _ => _
 	    .Unlisted()
-	    .DependsOn(UpdateAzureArtifactsFeedCredentials);
+	    .DependsOn(UpdateDotRmdyAzureArtifactsFeedCredentials);
 
     Target Compile => _ => _
         .DependsOn(Restore)
@@ -96,5 +96,5 @@ partial class Build : NukeBuild
         });
 
     Target Publish => _ => _
-	    .DependsOn(PublishToAzureArtifacts);
+	    .DependsOn(PublishToDotRmdyAzureArtifacts);
 }

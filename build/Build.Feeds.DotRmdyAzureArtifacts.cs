@@ -11,17 +11,17 @@ partial class Build
 	const string RMDY_AZURE_ARTIFACTS_FEED_NAME = "RMDY-AzureArtifacts";
 
 	[Secret, Parameter]
-	readonly string AzureArtifactsPAT;
+	readonly string DotRmdyAzureArtifactsToken;
 
-	Target UpdateAzureArtifactsFeedCredentials => _ => _
+	Target UpdateDotRmdyAzureArtifactsFeedCredentials => _ => _
 		.OnlyWhenStatic(() => IsServerBuild && Host is not AzurePipelines)
-		.Requires(() => !string.IsNullOrEmpty(AzureArtifactsPAT))
+		.Requires(() => !string.IsNullOrEmpty(DotRmdyAzureArtifactsToken))
 		.Executes(() =>
 		{
-			DotNet($"nuget update source {RMDY_AZURE_ARTIFACTS_FEED_NAME} --username az --password {AzureArtifactsPAT} --store-password-in-clear-text");
+			DotNet($"nuget update source {RMDY_AZURE_ARTIFACTS_FEED_NAME} --username az --password {DotRmdyAzureArtifactsToken} --store-password-in-clear-text");
 		});
 
-	Target PublishToAzureArtifacts => _ => _
+	Target PublishToDotRmdyAzureArtifacts => _ => _
 		.DependsOn(Pack)
 		.Executes(() =>
 		{
