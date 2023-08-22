@@ -56,27 +56,31 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 						: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
 				});
 			}
-			catch (Exception ex) when (ex is OperationCanceledException or WebException or SocketException)
+			catch (Exception exception) when (exception is OperationCanceledException or WebException or SocketException)
 			{
-				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}",
-					typeof(T).Name,
-					callerMethod);
+				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
-				return CallResult<T>.CreateTimeOutError<T>();
+				return HandleTimeout<T>(exception, callerMethod, out var result)
+					? result
+					: CallResult<T>.CreateTimeOutError<T>();
 			}
-			catch (Exception ex)
+			catch (Exception exception)
 			{
-				if (HandleException<T>(ex, callerMethod, out var result))
-				{
-					return result;
-				}
+				Logger.LogWarning(exception, "Exception during web call | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
-				Logger.LogWarning(ex, "Exception during web call | Type: {Type} | Method: {Method}",
-					typeof(T).Name,
-					callerMethod);
-
-				return CallResult<T>.CreateError<T>(new CallResultError(ex));
+				return HandleException<T>(exception, callerMethod, out var result)
+					? result
+					: CallResult<T>.CreateError<T>(new CallResultError(exception));
 			}
+		}
+
+		protected virtual bool HandleTimeout<T>(
+			Exception exception,
+			string? callerMethod,
+			[NotNullWhen(true)] out CallResult<T>? callResult)
+		{
+			callResult = default;
+			return false;
 		}
 
 		protected virtual bool HandleException<T>(
@@ -115,24 +119,31 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 					return CallResult.CreateSuccess(result.StatusCode);
 				});
 			}
-			catch (Exception ex) when (ex is OperationCanceledException or WebException or SocketException)
+			catch (Exception exception) when (exception is OperationCanceledException or WebException or SocketException)
 			{
 				Logger.LogInformation("Request timed out | Method: {Method}", callerMethod);
 
-				return CallResult.CreateTimeOutError();
+				return HandleTimeout(exception, callerMethod, out var result)
+					? result
+					: CallResult.CreateTimeOutError();
 			}
-			catch (Exception ex)
+			catch (Exception exception)
 			{
-				if (HandleException(ex, callerMethod, out var result))
-				{
-					return result;
-				}
+				Logger.LogWarning(exception, "Exception during web call | Method: {Method}", callerMethod);
 
-				Logger.LogWarning(ex, "Exception during web call | Method: {Method}",
-					callerMethod);
-
-				return CallResult.CreateError(new CallResultError(ex));
+				return HandleException(exception, callerMethod, out var result)
+					? result
+					: CallResult.CreateError(new CallResultError(exception));
 			}
+		}
+
+		protected virtual bool HandleTimeout(
+			Exception exception,
+			string? callerMethod,
+			[NotNullWhen(true)] out CallResult? callResult)
+		{
+			callResult = default;
+			return false;
 		}
 
 		protected virtual bool HandleException(
