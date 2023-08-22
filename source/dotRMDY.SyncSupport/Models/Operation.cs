@@ -5,9 +5,7 @@ namespace dotRMDY.SyncSupport.Models
 {
 	public abstract class Operation : IRepositoryBaseEntity
 	{
-		protected Operation() => Id = Guid.NewGuid().ToString();
-
-		public string Id { get; set; }
+		public string Id { get; set; } = Guid.NewGuid().ToString();
 
 		public DateTimeOffset CreationTimestamp { get; set; }
 
