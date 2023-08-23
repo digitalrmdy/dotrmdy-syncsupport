@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -44,7 +43,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 				{
 					var result = await call.Invoke().ConfigureAwait(false);
 
-					if ( result.Error != null)
+					if (result.Error != null)
 					{
 						throw result.Error;
 					}
@@ -60,42 +59,32 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			{
 				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
-				return HandleTimeout<T>(exception, callerMethod, out var result)
-					? result
-					: CallResult<T>.CreateTimeOutError<T>();
+				var handledCallResult = await HandleTimeout<T>(exception, callerMethod);
+				return handledCallResult ?? CallResult<T>.CreateTimeOutError<T>();
 			}
 			catch (Exception exception)
 			{
 				Logger.LogWarning(exception, "Exception during web call | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
-				return HandleException<T>(exception, callerMethod, out var result)
-					? result
-					: CallResult<T>.CreateError<T>(new CallResultError(exception));
+				var handledCallResult = await HandleException<T>(exception, callerMethod);
+				return handledCallResult ?? CallResult<T>.CreateError<T>(new CallResultError(exception));
 			}
 		}
 
-		protected virtual bool HandleTimeout<T>(
+		protected virtual Task<CallResult<T>?> HandleTimeout<T>(
 			Exception exception,
-			string? callerMethod,
-			[NotNullWhen(true)] out CallResult<T>? callResult)
+			string callerMethod)
 		{
-			callResult = default;
-			return false;
+			return Task.FromResult<CallResult<T>?>(null);
 		}
 
-		protected virtual bool HandleException<T>(
+		protected virtual Task<CallResult<T>?> HandleException<T>(
 			Exception exception,
-			string? callerMethod,
-			[NotNullWhen(true)] out CallResult<T>? callResult)
+			string callerMethod)
 		{
-			if (exception is ApiException apiException)
-			{
-				callResult = CallResult<T>.CreateError<T>(new CallResultError(apiException), apiException.StatusCode);
-				return true;
-			}
-
-			callResult = default;
-			return false;
+			return Task.FromResult(exception is ApiException apiException
+				? CallResult<T>.CreateError<T>(new CallResultError(apiException), apiException.StatusCode)
+				: null);
 		}
 
 		protected virtual async Task<CallResult> ExecuteCall(
@@ -110,7 +99,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 				return await VoidPolicy.ExecuteAsync(async () =>
 				{
 					var result = await call.Invoke().ConfigureAwait(false);
-					if ( result.Error != null)
+					if (result.Error != null)
 					{
 						throw result.Error;
 					}
@@ -123,42 +112,32 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			{
 				Logger.LogInformation("Request timed out | Method: {Method}", callerMethod);
 
-				return HandleTimeout(exception, callerMethod, out var result)
-					? result
-					: CallResult.CreateTimeOutError();
+				var handledCallResult = await HandleTimeout(exception, callerMethod);
+				return handledCallResult ?? CallResult.CreateTimeOutError();
 			}
 			catch (Exception exception)
 			{
 				Logger.LogWarning(exception, "Exception during web call | Method: {Method}", callerMethod);
 
-				return HandleException(exception, callerMethod, out var result)
-					? result
-					: CallResult.CreateError(new CallResultError(exception));
+				var handledCallResult = await HandleException(exception, callerMethod);
+				return handledCallResult ?? CallResult.CreateError(new CallResultError(exception));
 			}
 		}
 
-		protected virtual bool HandleTimeout(
+		protected virtual Task<CallResult?> HandleTimeout(
 			Exception exception,
-			string? callerMethod,
-			[NotNullWhen(true)] out CallResult? callResult)
+			string callerMethod)
 		{
-			callResult = default;
-			return false;
+			return Task.FromResult<CallResult?>(null);
 		}
 
-		protected virtual bool HandleException(
+		protected virtual Task<CallResult?> HandleException(
 			Exception exception,
-			string? callerMethod,
-			[NotNullWhen(true)] out CallResult? callResult)
+			string callerMethod)
 		{
-			if (exception is ApiException apiException)
-			{
-				callResult = CallResult.CreateError(new CallResultError(apiException), apiException.StatusCode);
-				return true;
-			}
-
-			callResult = default;
-			return false;
+			return Task.FromResult(exception is ApiException apiException
+				? CallResult.CreateError(new CallResultError(apiException), apiException.StatusCode)
+				: null);
 		}
 	}
 }
