@@ -6,7 +6,7 @@ using FakeItEasy;
 using MvvmCross.IoC;
 using Xunit;
 
-namespace dotRMDY.SyncSupport.MvvmCross.UnitTests.Core.Extensions
+namespace dotRMDY.SyncSupport.MvvmCross.UnitTests.Extensions
 {
 	public class MvxIocProviderExtensionsTest
 	{
@@ -23,6 +23,8 @@ namespace dotRMDY.SyncSupport.MvvmCross.UnitTests.Core.Extensions
 			mvxIocProvider.VerifyLazySingletonRegistration<IOperationService, OperationService>()
 				.MustHaveHappenedOnceExactly();
 			mvxIocProvider.VerifyLazySingletonRegistration<IOperationHandlerService, OperationHandlerService>()
+				.MustHaveHappenedOnceExactly();
+			mvxIocProvider.VerifyLazySingletonRegistration<IWebServiceHelper, WebServiceHelper>()
 				.MustHaveHappenedOnceExactly();
 		}
 	}

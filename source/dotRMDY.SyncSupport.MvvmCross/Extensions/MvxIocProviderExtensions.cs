@@ -12,6 +12,7 @@ namespace dotRMDY.SyncSupport.MvvmCross.Extensions
 		{
 			iocProvider.LazyConstructAndRegisterSingleton<IOperationService, OperationService>();
 			iocProvider.LazyConstructAndRegisterSingleton<IOperationHandlerService, OperationHandlerService>();
+			iocProvider.LazyConstructAndRegisterSingleton<IWebServiceHelper, WebServiceHelper>();
 
 			return iocProvider;
 		}

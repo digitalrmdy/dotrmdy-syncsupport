@@ -12,16 +12,14 @@ using Refit;
 namespace dotRMDY.SyncSupport.Services.Implementations
 {
 	[PublicAPI]
-	public abstract class WebServiceBase
+	public class WebServiceHelper : IWebServiceHelper
 	{
-		protected readonly ILogger<WebServiceBase> Logger;
+		protected readonly ILogger<WebServiceHelper> Logger;
 		protected readonly IPolicyProvider PolicyProvider;
 
 		protected readonly AsyncPolicy<CallResult> VoidPolicy;
 
-		protected WebServiceBase(
-			ILogger<WebServiceBase> logger,
-			IPolicyProvider policyProvider)
+		public WebServiceHelper(ILogger<WebServiceHelper> logger, IPolicyProvider policyProvider)
 		{
 			Logger = logger;
 			PolicyProvider = policyProvider;
@@ -29,7 +27,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			VoidPolicy = PolicyProvider.BuildVoidPolicy();
 		}
 
-		protected virtual async Task<CallResult<T>> ExecuteCall<T>(
+		public async Task<CallResult<T>> ExecuteCall<T>(
 			Func<Task<IApiResponse<T>>> call,
 			[CallerMemberName] string? callerMethod = null)
 			where T : class
@@ -78,28 +76,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			}
 		}
 
-		protected virtual Task<CallResult<T>?> CheckPreConditions<T>(string callerMethod)
-		{
-			return Task.FromResult<CallResult<T>?>(null);
-		}
-
-		protected virtual Task<CallResult<T>?> HandleTimeout<T>(
-			Exception exception,
-			string callerMethod)
-		{
-			return Task.FromResult<CallResult<T>?>(null);
-		}
-
-		protected virtual Task<CallResult<T>?> HandleException<T>(
-			Exception exception,
-			string callerMethod)
-		{
-			return Task.FromResult(exception is ApiException apiException
-				? CallResult<T>.CreateError<T>(new CallResultError(apiException), apiException.StatusCode)
-				: null);
-		}
-
-		protected virtual async Task<CallResult> ExecuteCall(
+		public async Task<CallResult> ExecuteCall(
 			Func<Task<IApiResponse>> call,
 			[CallerMemberName] string? callerMethod = null)
 		{
@@ -141,6 +118,27 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 				var handledCallResult = await HandleException(exception, callerMethod);
 				return handledCallResult ?? CallResult.CreateError(new CallResultError(exception));
 			}
+		}
+
+		protected virtual Task<CallResult<T>?> CheckPreConditions<T>(string callerMethod)
+		{
+			return Task.FromResult<CallResult<T>?>(null);
+		}
+
+		protected virtual Task<CallResult<T>?> HandleTimeout<T>(
+			Exception exception,
+			string callerMethod)
+		{
+			return Task.FromResult<CallResult<T>?>(null);
+		}
+
+		protected virtual Task<CallResult<T>?> HandleException<T>(
+			Exception exception,
+			string callerMethod)
+		{
+			return Task.FromResult(exception is ApiException apiException
+				? CallResult<T>.CreateError<T>(new CallResultError(apiException), apiException.StatusCode)
+				: null);
 		}
 
 		protected virtual Task<CallResult?> CheckPreConditions(string callerMethod)
