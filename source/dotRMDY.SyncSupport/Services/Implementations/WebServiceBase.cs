@@ -35,6 +35,13 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			where T : class
 		{
 			callerMethod ??= "N/A";
+
+			var preConditionsCheckCallResult = await CheckPreConditions<T>(callerMethod);
+			if (preConditionsCheckCallResult != null)
+			{
+				return preConditionsCheckCallResult;
+			}
+
 			Logger.LogInformation("Executing request {CallerMethod}", callerMethod);
 
 			try
@@ -71,6 +78,11 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			}
 		}
 
+		protected virtual Task<CallResult<T>?> CheckPreConditions<T>(string callerMethod)
+		{
+			return Task.FromResult<CallResult<T>?>(null);
+		}
+
 		protected virtual Task<CallResult<T>?> HandleTimeout<T>(
 			Exception exception,
 			string callerMethod)
@@ -92,6 +104,13 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			[CallerMemberName] string? callerMethod = null)
 		{
 			callerMethod ??= "N/A";
+
+			var preConditionsCheckCallResult = await CheckPreConditions(callerMethod);
+			if (preConditionsCheckCallResult != null)
+			{
+				return preConditionsCheckCallResult;
+			}
+
 			Logger.LogInformation("Executing request {CallerMethod}", callerMethod);
 
 			try
@@ -122,6 +141,11 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 				var handledCallResult = await HandleException(exception, callerMethod);
 				return handledCallResult ?? CallResult.CreateError(new CallResultError(exception));
 			}
+		}
+
+		protected virtual Task<CallResult?> CheckPreConditions(string callerMethod)
+		{
+			return Task.FromResult<CallResult?>(null);
 		}
 
 		protected virtual Task<CallResult?> HandleTimeout(
