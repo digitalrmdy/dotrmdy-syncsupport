@@ -8,7 +8,7 @@
 
 	<PropertyGroup>
 		<Description>
-			Provides integration for easily registering existing implementations, provided by dotRMDY.SyncSupport.Shared,
+			Provides integration for easily registering existing implementations, provided by dotRMDY.SyncSupport,
 			with MvvmCross.
 		</Description>
 	</PropertyGroup>

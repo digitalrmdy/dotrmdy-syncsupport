@@ -4,32 +4,33 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using dotRMDY.Components.Services;
-using dotRMDY.SyncSupport.Handlers;
 using dotRMDY.SyncSupport.Messages;
 using dotRMDY.SyncSupport.Models;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace dotRMDY.SyncSupport.Services.Implementations
 {
-	public abstract class OperationHandlerService : IOperationHandlerService, IDisposable
+	[PublicAPI]
+	public class OperationHandlerService : IOperationHandlerService, IDisposable
 	{
 		private readonly ILogger<OperationHandlerService> _logger;
 		private readonly IOperationService _operationService;
+		private readonly IOperationHandlerDelegationService _operationHandlerDelegationService;
 		private readonly IMessenger _messenger;
-		private readonly IResolver _resolver;
 
 		private readonly SemaphoreSlim _operationHandlingSemaphoreSlim = new(1, 1);
 
 		public OperationHandlerService(
 			ILogger<OperationHandlerService> logger,
 			IOperationService operationService,
-			IMessenger messenger,
-			IResolver resolver)
+			IOperationHandlerDelegationService operationHandlerDelegationService,
+			IMessenger messenger)
 		{
 			_logger = logger;
 			_operationService = operationService;
+			_operationHandlerDelegationService = operationHandlerDelegationService;
 			_messenger = messenger;
-			_resolver = resolver;
 
 			_messenger.Register<OperationAddedMessage>(this, OperationAddedMessageHandler);
 		}
@@ -51,7 +52,10 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 				{
 					try
 					{
-						operationCallResults.Add(await HandleOperationRaw(operation));
+						var operationHandlerCallResult = await _operationHandlerDelegationService.HandleOperation(operation).ConfigureAwait(false);
+						var processOperationCallResult = await ProcessOperationCallResult(operationHandlerCallResult, operation).ConfigureAwait(false);
+
+						operationCallResults.Add(processOperationCallResult);
 					}
 					catch (Exception ex)
 					{
@@ -84,23 +88,6 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 		protected virtual void OperationAddedMessageHandler(object arg1, OperationAddedMessage arg2)
 		{
 			Task.Run(HandlePendingOperations);
-		}
-
-		protected virtual Task<CallResult> HandleOperationRaw(Operation operation)
-		{
-			throw new NotSupportedException($"Operation type '{operation.GetType().FullName}' is not supported.");
-		}
-
-		protected virtual async Task<CallResult> HandleOperation<TOperation>(TOperation operation) where TOperation : Operation
-		{
-			var resolvedHandler = _resolver.Resolve<IOperationHandler<TOperation>>();
-			if (resolvedHandler is null)
-			{
-				throw new InvalidOperationException($"Could not resolve handler for operation of type {operation.GetType().FullName}");
-			}
-
-			var handlerCallResult = await resolvedHandler.HandleOperation(operation).ConfigureAwait(false);
-			return await ProcessOperationCallResult(handlerCallResult, operation).ConfigureAwait(false);
 		}
 
 		protected virtual async Task<CallResult> ProcessOperationCallResult(CallResult callResult, Operation operation)

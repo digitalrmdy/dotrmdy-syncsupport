@@ -5,7 +5,7 @@ namespace dotRMDY.SyncSupport.SourceGenerator.Helpers
 	internal sealed class KnownTypeSymbols
 	{
 		private const string OPERATION_HANDLER_UNBOUND_BASETYPE_FULLNAME = "dotRMDY.SyncSupport.Handlers.IOperationHandler`1";
-		private const string OPERATION_HANDLER_SERVICE_BASETYPE_FULLNAME = "dotRMDY.SyncSupport.Services.Implementations.OperationHandlerService";
+		private const string OPERATION_HANDLER_DELEGATION_SERVICE_BASE_BASETYPE_FULLNAME = "dotRMDY.SyncSupport.Services.Implementations.OperationHandlerDelegationServiceBase";
 
 		public KnownTypeSymbols(Compilation compilation)
 		{
@@ -17,8 +17,8 @@ namespace dotRMDY.SyncSupport.SourceGenerator.Helpers
 		public INamedTypeSymbol? OperationHandlerUnboundBaseTypeSymbol => GetOrResolveType(OPERATION_HANDLER_UNBOUND_BASETYPE_FULLNAME, ref _operationHandlerUnboundBaseType);
 		private Option<INamedTypeSymbol?> _operationHandlerUnboundBaseType;
 
-		public INamedTypeSymbol? OperationHandlerServiceBaseTypeSymbol => GetOrResolveType(OPERATION_HANDLER_SERVICE_BASETYPE_FULLNAME, ref _operationHandlerServiceBaseType);
-		private Option<INamedTypeSymbol?> _operationHandlerServiceBaseType;
+		public INamedTypeSymbol? OperationHandlerDelegationServiceBaseBaseTypeSymbol => GetOrResolveType(OPERATION_HANDLER_DELEGATION_SERVICE_BASE_BASETYPE_FULLNAME, ref _operationHandlerDelegationServiceBaseBaseType);
+		private Option<INamedTypeSymbol?> _operationHandlerDelegationServiceBaseBaseType;
 
 		private INamedTypeSymbol? GetOrResolveType(string fullyQualifiedName, ref Option<INamedTypeSymbol?> field)
 		{

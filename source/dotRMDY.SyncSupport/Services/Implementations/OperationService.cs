@@ -8,10 +8,12 @@ using dotRMDY.Components.Services;
 using dotRMDY.DataStorage.Abstractions.Repositories;
 using dotRMDY.SyncSupport.Messages;
 using dotRMDY.SyncSupport.Models;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace dotRMDY.SyncSupport.Services.Implementations
 {
+	[PublicAPI]
 	public class OperationService : IOperationService, INeedAsyncInitialization
 	{
 		private readonly ILogger<OperationService> _logger;

@@ -32,16 +32,16 @@ public class HandleOperationIncrementalGenerator : IIncrementalGenerator
 			.Select(Step2FilterAndTransformForOperationHandlers)
 			.Where(x => x.CanContinue);
 
-		var operationHandlerServiceIncrementalValuesProvider = context.SyntaxProvider.CreateSyntaxProvider(
+		var operationHandlerDelegationServiceIncrementalValuesProvider = context.SyntaxProvider.CreateSyntaxProvider(
 				IsSyntaxForGeneration,
-				Step1FilterAndTransformForOperationHandlerServices)
+				Step1FilterAndTransformForOperationHandlerDelegationServices)
 			.Where(x => x.CanContinue)
 			.Combine(knownTypeSymbolsIncrementalValueProvider)
-			.Select(Step2FilterAndTransformForOperationHandlerServices)
+			.Select(Step2FilterAndTransformForOperationHandlerDelegationServices)
 			.Where(x => x.CanContinue)
 			.Collect();
 
-		var tadaam = operationHandlerServiceIncrementalValuesProvider.Combine(operationHandlerIncrementalValuesProvider.Collect());
+		var tadaam = operationHandlerDelegationServiceIncrementalValuesProvider.Combine(operationHandlerIncrementalValuesProvider.Collect());
 
 		context.RegisterSourceOutput(tadaam, GenerateSource);
 	}
@@ -101,7 +101,7 @@ public class HandleOperationIncrementalGenerator : IIncrementalGenerator
 		return GeneratorContextWrapper.CreateContinue(new OperationHandlerContext(fullyQualifiedTypeName, typeName));
 	}
 
-	private static GeneratorContextWrapper<OperationHandlerServiceIntermediateContext> Step1FilterAndTransformForOperationHandlerServices(
+	private static GeneratorContextWrapper<OperationHandlerServiceIntermediateContext> Step1FilterAndTransformForOperationHandlerDelegationServices(
 		GeneratorSyntaxContext syntaxContext, CancellationToken ct)
 	{
 		var semanticModel = syntaxContext.SemanticModel;
@@ -112,11 +112,11 @@ public class HandleOperationIncrementalGenerator : IIncrementalGenerator
 			: GeneratorContextWrapper.CreateStop<OperationHandlerServiceIntermediateContext>();
 	}
 
-	private static GeneratorContextWrapper<OperationHandlerServiceContext> Step2FilterAndTransformForOperationHandlerServices(
+	private static GeneratorContextWrapper<OperationHandlerServiceContext> Step2FilterAndTransformForOperationHandlerDelegationServices(
 		(GeneratorContextWrapper<OperationHandlerServiceIntermediateContext> Left, KnownTypeSymbols Right) valueTuple, CancellationToken ct)
 	{
 		var (operationHandlerServiceClassDeclaration, semanticModel) = valueTuple.Left.Context!;
-		var baseTypeSymbol = valueTuple.Right.OperationHandlerServiceBaseTypeSymbol;
+		var baseTypeSymbol = valueTuple.Right.OperationHandlerDelegationServiceBaseBaseTypeSymbol;
 
 		var concreteClassTypeSymbol = semanticModel.GetDeclaredSymbol(operationHandlerServiceClassDeclaration, ct);
 		Debug.Assert(concreteClassTypeSymbol != null);
@@ -167,7 +167,7 @@ public class HandleOperationIncrementalGenerator : IIncrementalGenerator
 			sourceWriter.Indentation++;
 		}
 
-		sourceWriter.WriteLine("protected override global::System.Threading.Tasks.Task<global::dotRMDY.SyncSupport.Shared.Models.CallResult> HandleOperationRaw(global::dotRMDY.SyncSupport.Shared.Models.Operation operation)");
+		sourceWriter.WriteLine("public override global::System.Threading.Tasks.Task<global::dotRMDY.SyncSupport.Models.CallResult> HandleOperation(global::dotRMDY.SyncSupport.Models.Operation operation)");
 		sourceWriter.WriteLine('{');
 		sourceWriter.Indentation++;
 
@@ -180,13 +180,13 @@ public class HandleOperationIncrementalGenerator : IIncrementalGenerator
 			var (fullyQualifiedOperationTypeName, operationTypeName) = variable.Context!;
 			sourceWriter.WriteLine($"case {fullyQualifiedOperationTypeName} {operationTypeName}:");
 			sourceWriter.Indentation++;
-			sourceWriter.WriteLine($"return HandleOperation({operationTypeName});");
+			sourceWriter.WriteLine($"return HandleOperation<{fullyQualifiedOperationTypeName}>({operationTypeName});");
 			sourceWriter.Indentation--;
 		}
 
 		sourceWriter.WriteLine("default:");
 		sourceWriter.Indentation++;
-		sourceWriter.WriteLine("return base.HandleOperationRaw(operation);");
+		sourceWriter.WriteLine("return base.HandleOperation(operation);");
 		sourceWriter.Indentation--;
 
 		while (sourceWriter.Indentation > 0)

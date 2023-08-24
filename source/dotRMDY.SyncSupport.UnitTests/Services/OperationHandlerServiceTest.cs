@@ -1,8 +1,6 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using dotRMDY.Components.Services;
-using dotRMDY.SyncSupport.Handlers;
 using dotRMDY.SyncSupport.Models;
 using dotRMDY.SyncSupport.Services;
 using dotRMDY.SyncSupport.Services.Implementations;
@@ -10,22 +8,21 @@ using dotRMDY.TestingTools;
 using FakeItEasy;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace dotRMDY.SyncSupport.UnitTests.Services.Implementations
+namespace dotRMDY.SyncSupport.UnitTests.Services
 {
-	public class OperationHandlerServiceTest : SutSupportingTest<OperationHandlerServiceTest.TestOperationHandlerService>
+	public class OperationHandlerServiceTest : SutSupportingTest<OperationHandlerService>
 	{
 		private IOperationService _operationService = null!;
-		private IResolver _resolver = null!;
+		private IOperationHandlerDelegationService _operationHandlerDelegationService = null!;
 
 		protected override void SetupCustomSutDependencies(SutBuilder builder)
 		{
 			base.SetupCustomSutDependencies(builder);
 
 			_operationService = builder.AddFakedDependency<IOperationService>();
-			_resolver = builder.AddFakedDependency<IResolver>();
+			_operationHandlerDelegationService = builder.AddFakedDependency<IOperationHandlerDelegationService>();
 		}
 
 		[Fact]
@@ -41,6 +38,8 @@ namespace dotRMDY.SyncSupport.UnitTests.Services.Implementations
 			// Assert
 			A.CallTo(() => _operationService.GetAllOperations()).MustHaveHappenedOnceExactly();
 
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(A<Operation>._)).MustNotHaveHappened();
+
 			result.Successful().Should().BeTrue();
 		}
 
@@ -52,15 +51,9 @@ namespace dotRMDY.SyncSupport.UnitTests.Services.Implementations
 			A.CallTo(() => _operationService.GetAllOperations())
 				.Returns(new Operation[] { operation });
 
-			var operationStubHandler = new OperationStubHandler();
-			var operationStubHandlerType = typeof(IOperationHandler<OperationStub>);
-			A.CallTo(() => _resolver.Resolve(operationStubHandlerType))
-				.Invokes(call =>
-				{
-					var requestedType = call.Arguments.Get<Type>(0);
-					requestedType.Should().Be(operationStubHandlerType);
-				})
-				.Returns(operationStubHandler);
+			var callResult = CallResult.CreateSuccess(HttpStatusCode.OK);
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(operation))
+				.Returns(callResult);
 
 			// Act
 			var result = await Sut.HandlePendingOperations();
@@ -68,7 +61,31 @@ namespace dotRMDY.SyncSupport.UnitTests.Services.Implementations
 			// Assert
 			A.CallTo(() => _operationService.GetAllOperations()).MustHaveHappenedOnceExactly();
 
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(operation)).MustHaveHappenedOnceExactly();
+
 			result.Successful().Should().BeTrue();
+		}
+
+		[Fact]
+		public async Task HandlePendingOperations_OneOperation_Throws()
+		{
+			// Arrange
+			var operation = new OperationStub { CreationTimestamp = 17.May(2023).At(21, 40) };
+			A.CallTo(() => _operationService.GetAllOperations())
+				.Returns(new Operation[] { operation });
+
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(An<Operation>._))
+				.Throws<Exception>();
+
+			// Act
+			var result = await Sut.HandlePendingOperations();
+
+			// Assert
+			A.CallTo(() => _operationService.GetAllOperations()).MustHaveHappenedOnceExactly();
+
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(operation)).MustHaveHappenedOnceExactly();
+
+			result.Successful().Should().BeFalse();
 		}
 
 		[Fact]
@@ -86,45 +103,9 @@ namespace dotRMDY.SyncSupport.UnitTests.Services.Implementations
 			A.CallTo(() => _operationService.UpdateOperation(operation)).MustHaveHappened();
 		}
 
-		public class TestOperationHandlerService : OperationHandlerService
-		{
-			public TestOperationHandlerService(
-				ILogger<TestOperationHandlerService> logger,
-				IOperationService operationService,
-				IMessenger messenger,
-				IResolver resolver)
-				: base(logger, operationService, messenger, resolver)
-			{
-			}
-
-			protected override Task<CallResult> HandleOperationRaw(Operation operation)
-			{
-				return operation switch
-				{
-					OperationStub operationStub => HandleOperation(operationStub),
-					_ => base.HandleOperationRaw(operation)
-				};
-			}
-		}
-
 		// ReSharper disable once MemberCanBePrivate.Global
 		public class OperationStub : Operation
 		{
-		}
-
-		public class OperationStubHandler : IOperationHandler<OperationStub>
-		{
-			public Task<CallResult> HandleOperation<TOperation>(TOperation operation) where TOperation : Operation
-			{
-				return operation is not OperationStub operationStub
-					? throw new ArgumentException($"Operation must be of type {nameof(OperationStub)}", nameof(operation))
-					: HandleOperation(operationStub);
-			}
-
-			public Task<CallResult> HandleOperation(OperationStub operation)
-			{
-				return Task.FromResult(CallResult.CreateSuccess(HttpStatusCode.OK));
-			}
 		}
 	}
 }
