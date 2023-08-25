@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using dotRMDY.Components.Helpers;
 using dotRMDY.Components.Services;
 using dotRMDY.DataStorage.Abstractions.Repositories;
 using dotRMDY.SyncSupport.Messages;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace dotRMDY.SyncSupport.Services.Implementations
 {
 	[PublicAPI]
-	public class OperationService : IOperationService, INeedAsyncInitialization
+	public class OperationService : IOperationService
 	{
 		private readonly ILogger<OperationService> _logger;
 		private readonly IRepository<Operation> _operationRepository;
