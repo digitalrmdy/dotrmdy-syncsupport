@@ -67,13 +67,13 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 		public async Task Initialize()
 		{
+			if (_initialized)
+			{
+				return;
+			}
+
 			try
 			{
-				if (_initialized)
-				{
-					return;
-				}
-
 				await _initSemaphoreSlim.WaitAsync();
 
 				if (_initialized)
@@ -81,9 +81,9 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 					return;
 				}
 
-				_initialized = true;
-
 				await HandleInMemoryQueue();
+
+				_initialized = true;
 			}
 			catch (Exception e)
 			{
