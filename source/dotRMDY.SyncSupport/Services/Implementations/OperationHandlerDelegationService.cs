@@ -25,7 +25,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			var resolvedHandler = _resolver.Resolve<IOperationHandler<TOperation>>();
 			if (resolvedHandler is null)
 			{
-				throw new InvalidOperationException($"Could not resolve handler for operation of type {operation.GetType().FullName}");
+				throw new InvalidOperationException($"Could not resolve handler for operation of type '{operation.GetType().FullName}'");
 			}
 
 			return await resolvedHandler.HandleOperation(operation).ConfigureAwait(false);

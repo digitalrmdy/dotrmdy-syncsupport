@@ -5,6 +5,7 @@ using dotRMDY.Components.Services;
 using dotRMDY.SyncSupport.Handlers;
 using dotRMDY.SyncSupport.Models;
 using dotRMDY.SyncSupport.Services.Implementations;
+using dotRMDY.SyncSupport.UnitTests.TestHelpers.Models;
 using dotRMDY.TestingTools;
 using FakeItEasy;
 using FluentAssertions;
@@ -53,7 +54,18 @@ namespace dotRMDY.SyncSupport.UnitTests.Services
 
 			// Assert
 			await act.Should().ThrowAsync<InvalidOperationException>()
-				.WithMessage("Could not resolve handler for operation of type dotRMDY.SyncSupport.UnitTests.Services.OperationHandlerDelegationServiceTest+OperationStub");
+				.WithMessage("Could not resolve handler for operation of type 'dotRMDY.SyncSupport.UnitTests.TestHelpers.Models.OperationStub'");
+		}
+
+		[Fact]
+		public async Task HandleOperation_NoOperationHandlerMapping()
+		{
+			// Act
+			var act = () => Sut.HandleOperation(new UnhandledOperationStub());
+
+			// Assert
+			await act.Should().ThrowAsync<NotSupportedException>()
+				.WithMessage("Operation type 'dotRMDY.SyncSupport.UnitTests.TestHelpers.Models.UnhandledOperationStub' is not supported.");
 		}
 
 		public class TestOperationHandlerDelegationService : OperationHandlerDelegationServiceBase
@@ -70,11 +82,6 @@ namespace dotRMDY.SyncSupport.UnitTests.Services
 					_ => base.HandleOperation(operation)
 				};
 			}
-		}
-
-		// ReSharper disable once MemberCanBePrivate.Global
-		public class OperationStub : Operation
-		{
 		}
 	}
 }
