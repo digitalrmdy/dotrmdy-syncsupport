@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using dotRMDY.SyncSupport.Models;
 
@@ -9,9 +10,9 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 	{
 		private readonly ICollection<IOperationHandlerDelegationService> _operationHandlerDelegationServices;
 
-		public CombinatorialOperationHandlerDelegationService(ICollection<IOperationHandlerDelegationService> operationHandlerDelegationServices)
+		public CombinatorialOperationHandlerDelegationService(IEnumerable<IOperationHandlerDelegationService> operationHandlerDelegationServices)
 		{
-			_operationHandlerDelegationServices = operationHandlerDelegationServices;
+			_operationHandlerDelegationServices = operationHandlerDelegationServices.ToArray();
 		}
 
 		public Task<CallResult> HandleOperation(Operation operation)
