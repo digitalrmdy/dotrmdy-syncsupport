@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using dotRMDY.SyncSupport.Models;
 using dotRMDY.SyncSupport.Services;
 using dotRMDY.SyncSupport.Services.Implementations;
+using dotRMDY.SyncSupport.UnitTests.TestHelpers.Models;
 using dotRMDY.TestingTools;
 using FakeItEasy;
 using FluentAssertions;
@@ -101,11 +102,6 @@ namespace dotRMDY.SyncSupport.UnitTests.Services
 			operation.LastSyncFailed.Should().BeTrue();
 
 			A.CallTo(() => _operationService.UpdateOperation(operation)).MustHaveHappened();
-		}
-
-		// ReSharper disable once MemberCanBePrivate.Global
-		public class OperationStub : Operation
-		{
 		}
 	}
 }
