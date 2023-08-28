@@ -81,9 +81,9 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 					return;
 				}
 
-				await HandleInMemoryQueue();
-
 				_initialized = true;
+
+				await HandleInMemoryQueue();
 			}
 			catch (Exception e)
 			{
@@ -97,7 +97,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 		protected virtual async Task AddOperation(Operation operation)
 		{
-			if (_initialized)
+			if (!_initialized)
 			{
 				_inMemoryOperationQueue.Enqueue(operation);
 				return;
