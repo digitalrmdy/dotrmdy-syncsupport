@@ -144,5 +144,18 @@ namespace dotRMDY.SyncSupport.UnitTests.Services
 
 			inMemoryQueue.Should().BeEmpty();
 		}
+
+		[Fact]
+		public async Task Initialize_MultipleMethodCalls_ReleasesSemaphoreCorrectly()
+		{
+			// Arrange
+			await Sut.Initialize();
+
+			// Act
+			var act = () => Sut.Initialize();
+
+			// Assert
+			await act.Should().NotThrowAsync();
+		}
 	}
 }
