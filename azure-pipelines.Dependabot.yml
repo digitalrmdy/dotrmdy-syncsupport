@@ -17,5 +17,6 @@ steps:
       inputs:
           useConfigFile: true
           azureDevOpsAccessToken: '$(System.AccessToken)'
+          gitHubConnection: 'GitHub Service Connection'
       env:
           RMDY_AZURE_ARTIFACTS_TOKEN: $(System.AccessToken)
