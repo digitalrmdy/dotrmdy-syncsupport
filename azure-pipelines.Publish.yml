@@ -30,7 +30,7 @@ stages:
       - job: Publish
         displayName: 'Publish'
         steps:
-          - task: NuGetAuthenticate@0
+          - task: NuGetAuthenticate@1
           - checkout: self
             fetchDepth: 0
           - task: CmdLine@2
