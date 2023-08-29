@@ -14,7 +14,7 @@ partial class Build
 	readonly string DotRmdyAzureArtifactsToken;
 
 	Target UpdateDotRmdyAzureArtifactsFeedCredentials => _ => _
-		.OnlyWhenStatic(() => IsServerBuild && Host is not AzurePipelines)
+		.OnlyWhenStatic(() => IsServerBuild && Host is not Nuke.Common.CI.AzurePipelines.AzurePipelines)
 		.Requires(() => !string.IsNullOrEmpty(DotRmdyAzureArtifactsToken))
 		.Executes(() =>
 		{
