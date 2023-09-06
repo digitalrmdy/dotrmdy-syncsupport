@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using dotRMDY.Components.Services;
 using dotRMDY.SyncSupport.Models;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -22,8 +21,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 		public OperationHandlerService(
 			ILogger<OperationHandlerService> logger,
 			IOperationService operationService,
-			IOperationHandlerDelegationService operationHandlerDelegationService,
-			IMessenger messenger)
+			IOperationHandlerDelegationService operationHandlerDelegationService)
 		{
 			_logger = logger;
 			_operationService = operationService;
