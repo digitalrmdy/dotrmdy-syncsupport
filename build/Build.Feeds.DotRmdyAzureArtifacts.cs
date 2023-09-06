@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Nuke.Common;
-using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;

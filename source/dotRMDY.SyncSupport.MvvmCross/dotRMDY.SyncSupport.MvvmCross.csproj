@@ -11,11 +11,13 @@
 			Provides integration for easily registering existing implementations, provided by dotRMDY.SyncSupport,
 			with MvvmCross.
 		</Description>
+
+		<IncludeSymbols>true</IncludeSymbols>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JetBrains.Annotations" Version="2023.2.0" PrivateAssets="All" />
-		<PackageReference Include="MvvmCross" Version="9.1.1" />
+		<PackageReference Include="JetBrains.Annotations" Version="2023.2.0" PrivateAssets="All"/>
+		<PackageReference Include="MvvmCross" Version="9.1.1"/>
 	</ItemGroup>
 
 	<ItemGroup>

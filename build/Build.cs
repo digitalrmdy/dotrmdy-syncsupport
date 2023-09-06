@@ -103,7 +103,7 @@ partial class Build : NukeBuild
 
 	Target Pack => _ => _
 		.DependsOn(Clean, RunTests)
-		.Produces(ArtifactsDirectory / "*.nupkg")
+		.Produces(ArtifactsDirectory / "*.nupkg", ArtifactsDirectory / "*.snupkg")
 		.Executes(() =>
 		{
 			DotNetPack(s => s
@@ -114,7 +114,8 @@ partial class Build : NukeBuild
 				.SetVersion(GitVersion.NuGetVersion)
 				.SetProperty("RepositoryBranch", GitRepository.Branch)
 				.SetProperty("RepositoryCommit", GitRepository.Commit)
-				.SetOutputDirectory(ArtifactsDirectory));
+				.SetOutputDirectory(ArtifactsDirectory)
+				.SetSymbolPackageFormat(DotNetSymbolPackageFormat.snupkg));
 		});
 
 	Target Publish => _ => _
