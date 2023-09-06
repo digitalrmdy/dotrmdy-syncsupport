@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using dotRMDY.Components.Services;
-using dotRMDY.SyncSupport.Messages;
 using dotRMDY.SyncSupport.Models;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -12,12 +11,11 @@ using Microsoft.Extensions.Logging;
 namespace dotRMDY.SyncSupport.Services.Implementations
 {
 	[PublicAPI]
-	public class OperationHandlerService : IOperationHandlerService, IDisposable
+	public class OperationHandlerService : IOperationHandlerService
 	{
 		private readonly ILogger<OperationHandlerService> _logger;
 		private readonly IOperationService _operationService;
 		private readonly IOperationHandlerDelegationService _operationHandlerDelegationService;
-		private readonly IMessenger _messenger;
 
 		private readonly SemaphoreSlim _operationHandlingSemaphoreSlim = new(1, 1);
 
@@ -30,9 +28,6 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			_logger = logger;
 			_operationService = operationService;
 			_operationHandlerDelegationService = operationHandlerDelegationService;
-			_messenger = messenger;
-
-			_messenger.Register<OperationAddedMessage>(this, OperationAddedMessageHandler);
 		}
 
 		public virtual async Task<CallResult> HandlePendingOperations()
@@ -78,16 +73,6 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 		{
 			operation.LastSyncFailed = true;
 			return _operationService.UpdateOperation(operation);
-		}
-
-		public void Dispose()
-		{
-			_messenger.Unregister<OperationAddedMessage>(this);
-		}
-
-		protected virtual void OperationAddedMessageHandler(object arg1, OperationAddedMessage arg2)
-		{
-			Task.Run(HandlePendingOperations);
 		}
 
 		protected virtual async Task<CallResult> ProcessOperationCallResult(CallResult callResult, Operation operation)
