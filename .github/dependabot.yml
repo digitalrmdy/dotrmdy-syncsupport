@@ -8,6 +8,7 @@ updates:
     - package-ecosystem: nuget
       directory: "/"
       schedule:
+          # Ignored, the actual schedule is set in YAML workflow
           interval: daily
       open-pull-requests-limit: 10
       registries:
