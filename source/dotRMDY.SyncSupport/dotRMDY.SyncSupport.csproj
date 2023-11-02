@@ -18,7 +18,7 @@
 		<PackageReference Include="dotRMDY.DataStorage.Abstractions" Version="1.1.3"/>
 		<PackageReference Include="JetBrains.Annotations" Version="2023.2.0" PrivateAssets="All" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1"/>
-		<PackageReference Include="Polly" Version="8.1.0"/>
+		<PackageReference Include="Polly" Version="7.2.4"/>
 		<PackageReference Include="Refit" Version="7.0.0"/>
 	</ItemGroup>
 
