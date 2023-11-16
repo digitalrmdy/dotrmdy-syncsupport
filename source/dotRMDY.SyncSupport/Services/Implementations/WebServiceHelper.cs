@@ -16,15 +16,20 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 	{
 		protected readonly ILogger<WebServiceHelper> Logger;
 		protected readonly IPolicyProvider PolicyProvider;
+		protected readonly IResilienceStrategyProvider ResilienceStrategyProvider;
 
 		protected readonly AsyncPolicy<CallResult> VoidPolicy;
+		protected readonly ResiliencePipeline<CallResult> VoidResilienceStrategy;
 
 		public WebServiceHelper(ILogger<WebServiceHelper> logger, IPolicyProvider policyProvider)
+		public WebServiceHelper(ILogger<WebServiceHelper> logger, IResilienceStrategyProvider resilienceStrategyProvider)
 		{
 			Logger = logger;
 			PolicyProvider = policyProvider;
+			ResilienceStrategyProvider = resilienceStrategyProvider;
 
 			VoidPolicy = PolicyProvider.BuildVoidPolicy();
+			VoidResilienceStrategy = ResilienceStrategyProvider.BuildVoidResilienceStrategy();
 		}
 
 		public async Task<CallResult<T>> ExecuteCall<T>(
@@ -44,7 +49,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 			try
 			{
-				return await PolicyProvider.BuildResultPolicy<T>().ExecuteAsync(async () =>
+				return await ResilienceStrategyProvider.BuildResultResilienceStrategy<T>().ExecuteAsync(async () =>
 				{
 					var result = await call.Invoke().ConfigureAwait(false);
 
@@ -92,7 +97,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 			try
 			{
-				return await VoidPolicy.ExecuteAsync(async () =>
+				return await VoidResilienceStrategy.ExecuteAsync(async () =>
 				{
 					var result = await call.Invoke().ConfigureAwait(false);
 					if (result.Error != null)
