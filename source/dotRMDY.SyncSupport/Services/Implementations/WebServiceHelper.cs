@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using dotRMDY.SyncSupport.Models;
 using JetBrains.Annotations;
@@ -15,25 +16,21 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 	public class WebServiceHelper : IWebServiceHelper
 	{
 		protected readonly ILogger<WebServiceHelper> Logger;
-		protected readonly IPolicyProvider PolicyProvider;
 		protected readonly IResilienceStrategyProvider ResilienceStrategyProvider;
 
-		protected readonly AsyncPolicy<CallResult> VoidPolicy;
 		protected readonly ResiliencePipeline<CallResult> VoidResilienceStrategy;
 
-		public WebServiceHelper(ILogger<WebServiceHelper> logger, IPolicyProvider policyProvider)
 		public WebServiceHelper(ILogger<WebServiceHelper> logger, IResilienceStrategyProvider resilienceStrategyProvider)
 		{
 			Logger = logger;
-			PolicyProvider = policyProvider;
 			ResilienceStrategyProvider = resilienceStrategyProvider;
 
-			VoidPolicy = PolicyProvider.BuildVoidPolicy();
 			VoidResilienceStrategy = ResilienceStrategyProvider.BuildVoidResilienceStrategy();
 		}
 
 		public async Task<CallResult<T>> ExecuteCall<T>(
-			Func<Task<IApiResponse<T>>> call,
+			Func<CancellationToken, Task<IApiResponse<T>>> call,
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string? callerMethod = null)
 			where T : class
 		{
@@ -49,9 +46,9 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 			try
 			{
-				return await ResilienceStrategyProvider.BuildResultResilienceStrategy<T>().ExecuteAsync(async () =>
+				return await ResilienceStrategyProvider.BuildResultResilienceStrategy<T>().ExecuteAsync(async ct =>
 				{
-					var result = await call.Invoke().ConfigureAwait(false);
+					var result = await call.Invoke(ct).ConfigureAwait(false);
 
 					if (result.Error != null)
 					{
@@ -63,7 +60,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 					return result.Content == null
 						? (CallResult<T>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
 						: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
-				});
+				}, cancellationToken);
 			}
 			catch (Exception exception) when (exception is OperationCanceledException or WebException or SocketException)
 			{
@@ -82,7 +79,8 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 		}
 
 		public async Task<CallResult> ExecuteCall(
-			Func<Task<IApiResponse>> call,
+			Func<CancellationToken, Task<IApiResponse>> call,
+			CancellationToken cancellationToken = default,
 			[CallerMemberName] string? callerMethod = null)
 		{
 			callerMethod ??= "N/A";
@@ -97,9 +95,9 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 			try
 			{
-				return await VoidResilienceStrategy.ExecuteAsync(async () =>
+				return await VoidResilienceStrategy.ExecuteAsync(async ct =>
 				{
-					var result = await call.Invoke().ConfigureAwait(false);
+					var result = await call.Invoke(ct).ConfigureAwait(false);
 					if (result.Error != null)
 					{
 						throw result.Error;
@@ -107,7 +105,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 					Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
 					return CallResult.CreateSuccess(result.StatusCode);
-				});
+				}, cancellationToken);
 			}
 			catch (Exception exception) when (exception is OperationCanceledException or WebException or SocketException)
 			{
