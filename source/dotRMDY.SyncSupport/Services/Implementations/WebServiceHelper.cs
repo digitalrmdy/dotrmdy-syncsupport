@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using dotRMDY.SyncSupport.Models;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Polly;
 using Refit;
 
 namespace dotRMDY.SyncSupport.Services.Implementations
@@ -16,16 +15,10 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 	public class WebServiceHelper : IWebServiceHelper
 	{
 		protected readonly ILogger<WebServiceHelper> Logger;
-		protected readonly IResilienceStrategyProvider ResilienceStrategyProvider;
 
-		protected readonly ResiliencePipeline<CallResult> VoidResilienceStrategy;
-
-		public WebServiceHelper(ILogger<WebServiceHelper> logger, IResilienceStrategyProvider resilienceStrategyProvider)
+		public WebServiceHelper(ILogger<WebServiceHelper> logger)
 		{
 			Logger = logger;
-			ResilienceStrategyProvider = resilienceStrategyProvider;
-
-			VoidResilienceStrategy = ResilienceStrategyProvider.BuildVoidResilienceStrategy();
 		}
 
 		public async Task<CallResult<T>> ExecuteCall<T>(
@@ -46,23 +39,20 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 			try
 			{
-				return await ResilienceStrategyProvider.BuildResultResilienceStrategy<T>().ExecuteAsync(async ct =>
+				var result = await call.Invoke(cancellationToken).ConfigureAwait(false);
+
+				if (result.Error != null)
 				{
-					var result = await call.Invoke(ct).ConfigureAwait(false);
+					throw result.Error;
+				}
 
-					if (result.Error != null)
-					{
-						throw result.Error;
-					}
+				Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
 
-					Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
-
-					return result.Content == null
-						? (CallResult<T>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
-						: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
-				}, cancellationToken);
+				return result.Content == null
+					? (CallResult<T>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
+					: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
 			}
-			catch (Exception exception) when (exception is OperationCanceledException or WebException or SocketException)
+			catch (Exception exception) when (exception is OperationCanceledException or WebException { Status: WebExceptionStatus.Timeout } or SocketException)
 			{
 				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
@@ -95,19 +85,17 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 			try
 			{
-				return await VoidResilienceStrategy.ExecuteAsync(async ct =>
+				var result = await call.Invoke(cancellationToken).ConfigureAwait(false);
+				if (result.Error != null)
 				{
-					var result = await call.Invoke(ct).ConfigureAwait(false);
-					if (result.Error != null)
-					{
-						throw result.Error;
-					}
+					throw result.Error;
+				}
 
-					Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
-					return CallResult.CreateSuccess(result.StatusCode);
-				}, cancellationToken);
+				Logger.LogInformation("Request completed {CallerMethod} ", callerMethod);
+
+				return CallResult.CreateSuccess(result.StatusCode);
 			}
-			catch (Exception exception) when (exception is OperationCanceledException or WebException or SocketException)
+			catch (Exception exception) when (exception is OperationCanceledException or WebException { Status: WebExceptionStatus.Timeout } or SocketException)
 			{
 				Logger.LogInformation("Request timed out | Method: {Method}", callerMethod);
 
