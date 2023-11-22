@@ -52,7 +52,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 					? (CallResult<T>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
 					: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
 			}
-			catch (Exception exception) when (exception is OperationCanceledException or WebException { Status: WebExceptionStatus.Timeout } or SocketException)
+			catch (Exception exception) when (ShouldHandleExceptionAsTimeout(exception))
 			{
 				Logger.LogInformation("Request timed out | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
@@ -95,7 +95,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 				return CallResult.CreateSuccess(result.StatusCode);
 			}
-			catch (Exception exception) when (exception is OperationCanceledException or WebException { Status: WebExceptionStatus.Timeout } or SocketException)
+			catch (Exception exception) when (ShouldHandleExceptionAsTimeout(exception))
 			{
 				Logger.LogInformation("Request timed out | Method: {Method}", callerMethod);
 
@@ -151,6 +151,11 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			return Task.FromResult(exception is ApiException apiException
 				? CallResult.CreateError(new CallResultError(apiException), apiException.StatusCode)
 				: null);
+		}
+
+		protected virtual bool ShouldHandleExceptionAsTimeout(Exception exception)
+		{
+			return exception is OperationCanceledException or WebException { Status: WebExceptionStatus.Timeout } or SocketException;
 		}
 	}
 }
