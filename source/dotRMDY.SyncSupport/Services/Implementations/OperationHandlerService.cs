@@ -75,14 +75,13 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 		protected virtual async Task<CallResult> ProcessOperationCallResult(CallResult callResult, Operation operation)
 		{
-			switch (callResult.Status)
+			if (callResult.Status == CallResultStatus.Success || callResult.StatusCode == HttpStatusCode.NotFound)
 			{
-				case CallResultStatus.Success:
-					await _operationService.DeleteOperation(operation);
-					break;
-				case CallResultStatus.Error:
-					await MarkOperationAsFailed(operation);
-					break;
+				await _operationService.DeleteOperation(operation);
+			}
+			else if (callResult.Status == CallResultStatus.Error)
+			{
+				await MarkOperationAsFailed(operation);
 			}
 
 			return callResult;

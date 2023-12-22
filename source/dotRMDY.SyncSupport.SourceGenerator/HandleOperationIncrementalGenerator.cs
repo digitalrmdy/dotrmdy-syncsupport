@@ -95,10 +95,10 @@ public class HandleOperationIncrementalGenerator : IIncrementalGenerator
 		var operationTypeSymbol = operationHandlerOfTTypeSymbol.TypeArguments[0];
 		var fullyQualifiedTypeName = operationTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-		var typeName = operationTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-		typeName = char.ToLowerInvariant(typeName[0]) + typeName.Substring(1);
+		var variableName = operationTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+		variableName = char.ToLowerInvariant(variableName[0]) + variableName.Substring(1);
 
-		return GeneratorContextWrapper.CreateContinue(new OperationHandlerContext(fullyQualifiedTypeName, typeName));
+		return GeneratorContextWrapper.CreateContinue(new OperationHandlerContext(fullyQualifiedTypeName, variableName));
 	}
 
 	private static GeneratorContextWrapper<OperationHandlerServiceIntermediateContext> Step1FilterAndTransformForOperationHandlerDelegationServices(

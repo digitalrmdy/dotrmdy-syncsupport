@@ -68,6 +68,30 @@ namespace dotRMDY.SyncSupport.UnitTests.Services
 		}
 
 		[Fact]
+		public async Task HandlePendingOperations_OneOperation_HttpStatusCodeNotFound()
+		{
+			// Arrange
+			var operation = new OperationStub { CreationTimestamp = 17.May(2023).At(21, 40) };
+			A.CallTo(() => _operationService.GetAllOperations())
+				.Returns(new Operation[] { operation });
+
+			var callResult = CallResult.CreateError(new CallResultError(new Exception()), HttpStatusCode.NotFound);
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(operation))
+				.Returns(callResult);
+
+			// Act
+			var result = await Sut.HandlePendingOperations();
+
+			// Assert
+			A.CallTo(() => _operationService.GetAllOperations()).MustHaveHappenedOnceExactly();
+			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(operation)).MustHaveHappenedOnceExactly();
+			A.CallTo(() => _operationService.DeleteOperation(operation)).MustHaveHappenedOnceExactly();
+
+			result.Successful().Should().BeFalse();
+		}
+
+
+		[Fact]
 		public async Task HandlePendingOperations_OneOperation_Throws()
 		{
 			// Arrange
@@ -87,6 +111,10 @@ namespace dotRMDY.SyncSupport.UnitTests.Services
 			A.CallTo(() => _operationHandlerDelegationService.HandleOperation(operation)).MustHaveHappenedOnceExactly();
 
 			result.Successful().Should().BeFalse();
+
+			operation.LastSyncFailed.Should().BeTrue();
+
+			A.CallTo(() => _operationService.UpdateOperation(operation)).MustHaveHappened();
 		}
 
 		[Fact]
