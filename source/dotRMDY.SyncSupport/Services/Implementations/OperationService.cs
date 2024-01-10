@@ -57,11 +57,13 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 		public virtual Task UpdateOperation(Operation operation)
 		{
+			_logger.LogInformation("Updating operation: {OperationName}", operation.GetType().Name);
 			return _operationRepository.UpsertItem(operation);
 		}
 
 		public virtual Task DeleteOperation(Operation operation)
 		{
+			_logger.LogInformation("Deleting operation: {OperationName}", operation.GetType().Name);
 			return _operationRepository.DeleteItem(operation.Id);
 		}
 
@@ -99,10 +101,12 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 		{
 			if (!_initialized)
 			{
+				_logger.LogInformation("OperationService not initialized yet, adding operation to in-memory queue");
 				_inMemoryOperationQueue.Enqueue(operation);
 				return;
 			}
 
+			_logger.LogInformation("Adding operation of type: {OperationName} to database", operation.GetType().Name);
 			await _operationRepository.UpsertItem(operation);
 
 			_messenger.Send(new OperationAddedMessage());

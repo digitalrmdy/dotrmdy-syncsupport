@@ -48,6 +48,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 						var operationHandlerCallResult = await _operationHandlerDelegationService.HandleOperation(operation).ConfigureAwait(false);
 						var processOperationCallResult = await ProcessOperationCallResult(operationHandlerCallResult, operation).ConfigureAwait(false);
 
+						_logger.LogInformation("Operation {OperationName} processed with status {OperationStatus}", operation.GetType().Name, processOperationCallResult.Status);
 						operationCallResults.Add(processOperationCallResult);
 					}
 					catch (Exception ex)
