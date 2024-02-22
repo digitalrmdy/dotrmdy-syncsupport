@@ -18,5 +18,6 @@ steps:
           useConfigFile: true
           azureDevOpsAccessToken: '$(System.AccessToken)'
           gitHubConnection: 'GitHub Service Connection'
+          dockerImageTag: '1.24'
       env:
           RMDY_AZURE_ARTIFACTS_TOKEN: $(System.AccessToken)
