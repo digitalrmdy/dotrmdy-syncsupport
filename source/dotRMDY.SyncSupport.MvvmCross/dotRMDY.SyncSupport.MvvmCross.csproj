@@ -15,7 +15,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="JetBrains.Annotations" Version="2023.3.0" PrivateAssets="All" />
-		<PackageReference Include="MvvmCross" Version="9.1.1" />
+		<PackageReference Include="MvvmCross" Version="9.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>
