@@ -103,6 +103,8 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			{
 				_logger.LogInformation("OperationService not initialized yet, adding operation to in-memory queue");
 				_inMemoryOperationQueue.Enqueue(operation);
+
+				await Initialize();
 				return;
 			}
 
