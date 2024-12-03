@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
@@ -14,8 +14,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JetBrains.Annotations" Version="2023.3.0" PrivateAssets="All" />
-		<PackageReference Include="MvvmCross" Version="9.1.1" />
+		<PackageReference Include="JetBrains.Annotations" Version="2024.3.0" PrivateAssets="All" />
+		<PackageReference Include="MvvmCross" Version="9.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>
