@@ -46,11 +46,10 @@ namespace dotRMDY.SyncSupport.Services
 		/// <param name="cancellationToken">The cancellation token.</param>
 		/// <param name="callerMethod">The name of the calling method.</param>
 		/// <returns>A task representing the asynchronous operation, with a <see cref="CallResult{T, TE}"/> as the result.</returns>
-		Task<CallResult<T, TE>> ExecuteCall<T, TE>(
-			Func<CancellationToken, Task<IApiResponse<T>>> call,
+		Task<CallResult<T, TE>> ExecuteCall<T, TE>(Func<CancellationToken, Task<IApiResponse<T>>> call,
 			CancellationToken cancellationToken = default,
 			[CallerMemberName] string? callerMethod = null)
-			where T : class
-			where TE : class;
+			where T : class?
+			where TE : class?;
 	}
 }

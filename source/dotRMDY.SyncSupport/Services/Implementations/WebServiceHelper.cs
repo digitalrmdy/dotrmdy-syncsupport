@@ -97,8 +97,8 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			Func<CancellationToken, Task<IApiResponse<T>>> call,
 			CancellationToken cancellationToken = default,
 			[CallerMemberName] string? callerMethod = null)
-			where T : class
-			where TE : class
+			where T : class?
+			where TE : class?
 		{
 			callerMethod ??= "N/A";
 
@@ -137,10 +137,23 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 			{
 				Logger.LogWarning(exception, "Exception during web call | Type: {Type} | Method: {Method}", typeof(T).Name, callerMethod);
 
-				var content = result?.Error?.Content == null
-					? (CallResult<T, TE>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
-					: CallResult<T, TE>.CreateError<T, TE>(new CallResultError(exception), JsonSerializer.Deserialize<TE>(result.Error.Content));
-				return content;
+				if (string.IsNullOrWhiteSpace(result?.Error?.Content))
+				{
+					return (CallResult<T, TE>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")));
+				}
+
+				var callResultError = new CallResultError(exception);
+
+				try
+				{
+					var content = JsonSerializer.Deserialize<TE>(result.Error.Content);
+					return CallResult<T, TE>.CreateError<T, TE>(callResultError, content);
+				}
+				catch (Exception e)
+				{
+					Logger.LogWarning(e, "Error deserialization failed | Type: {Type} | Method: {Method}", typeof(TE).Name, callerMethod);
+					return CallResult<T, TE>.CreateError<T, TE>(callResultError);
+				}
 			}
 		}
 
