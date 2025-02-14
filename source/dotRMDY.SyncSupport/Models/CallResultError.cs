@@ -1,4 +1,5 @@
 using System;
+using Refit;
 
 namespace dotRMDY.SyncSupport.Models
 {
@@ -19,6 +20,12 @@ namespace dotRMDY.SyncSupport.Models
 		{
 		}
 
+		public CallResultError(ApiException apiException)
+			: this(null, apiException.GetType().Name, apiException.Message)
+		{
+			ApiException = apiException;
+		}
+
 		/// <summary>
 		/// Gets the code.
 		/// </summary>
@@ -36,6 +43,12 @@ namespace dotRMDY.SyncSupport.Models
 		/// </summary>
 		/// <value>The technical message.</value>
 		public string TechnicalMessage { get; }
+
+		/// <summary>
+		/// Gets the API exception.
+		/// </summary>
+		/// <value>The API exception.</value>
+		public ApiException? ApiException { get; }
 
 		/// <summary>
 		/// Set a fallback error message. This method does nothing when a non-empty message or a previous non-empty fallback has been set.
