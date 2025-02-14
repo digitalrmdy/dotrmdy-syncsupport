@@ -4,11 +4,13 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using dotRMDY.SyncSupport.Extensions;
 using dotRMDY.SyncSupport.Services.Implementations;
 using dotRMDY.SyncSupport.UnitTests.TestHelpers.Models;
 using dotRMDY.TestingTools;
 using FakeItEasy;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Refit;
 using Xunit;
 
@@ -52,7 +54,7 @@ public class WebServiceHelperTest : SutSupportingTest<WebServiceHelper>
 		});
 
 		// Act
-		var result = await Sut.ExecuteCall<SuccessResult>(call, cancellationToken);
+		var result = await Sut.ExecuteCall(call, cancellationToken);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -78,16 +80,17 @@ public class WebServiceHelperTest : SutSupportingTest<WebServiceHelper>
 		A.CallTo(() => call(cancellationToken)).ReturnsLazily(() => apiResponse);
 
 		// Act
-		var result = await Sut.ExecuteCall<SuccessResult, ErrorTestResult?>(call, cancellationToken);
+		var result = await Sut.ExecuteCall(call, cancellationToken);
+		var errorData = result.Error.TryGetErrorData<ErrorTestResult>(A.Fake<ILogger>());
 
 		// Assert
 		A.CallTo(() => call(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
 		result.Should().NotBeNull();
 		result.Data.Should().BeNull();
-		result.ErrorData.Should().NotBeNull();
-		result.ErrorData!.Id.Should().BeNull();
-		result.ErrorData!.B.Should().BeNull();
-		result.ErrorData!.C.Should().BeNull();
+		errorData.Should().NotBeNull();
+		errorData!.Id.Should().BeNull();
+		errorData.B.Should().BeNull();
+		errorData.C.Should().BeNull();
 	}
 
 	[Fact]
@@ -110,15 +113,16 @@ public class WebServiceHelperTest : SutSupportingTest<WebServiceHelper>
 		A.CallTo(() => call(cancellationToken)).ReturnsLazily(() => apiResponse);
 
 		// Act
-		var result = await Sut.ExecuteCall<SuccessResult, ErrorTestResult?>(call, cancellationToken);
+		var result = await Sut.ExecuteCall(call, cancellationToken);
+		var errorData = result.Error.TryGetErrorData<ErrorTestResult>(A.Fake<ILogger>());
 
 		// Assert
 		A.CallTo(() => call(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
 		result.Should().NotBeNull();
 		result.Data.Should().BeNull();
-		result.ErrorData.Should().NotBeNull();
-		result.ErrorData!.Id.Should().Be("id");
-		result.ErrorData!.B.Should().BeTrue();
-		result.ErrorData!.C.Should().Be(5);
+		errorData.Should().NotBeNull();
+		errorData!.Id.Should().Be("id");
+		errorData.B.Should().BeTrue();
+		errorData.C.Should().Be(5);
 	}
 }
