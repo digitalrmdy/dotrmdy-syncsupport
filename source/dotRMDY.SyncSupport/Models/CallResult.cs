@@ -208,12 +208,12 @@ namespace dotRMDY.SyncSupport.Models
 			return new CallResult<T>(error, statusCode);
 		}
 
-		protected static CallResult<T> CreateNoConnection<T>()
+		public static CallResult<T> CreateNoConnection<T>()
 		{
 			return new CallResult<T>(CallResultStatus.NoConnection);
 		}
 
-		protected static CallResult<T> CreateNotAuthenticated<T>()
+		public static CallResult<T> CreateNotAuthenticated<T>()
 		{
 			return new CallResult<T>(CallResultStatus.NotAuthenticated);
 		}
