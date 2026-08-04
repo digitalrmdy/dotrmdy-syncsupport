@@ -67,7 +67,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 				return result.Content == null
 					? (CallResult<T>) CallResult.CreateError(new CallResultError(new NullReferenceException("Content is null")))
-					: CallResult<T>.CreateSuccess(result.StatusCode, result.Content);
+					: CallResult<T>.CreateSuccess(result.StatusCode ?? HttpStatusCode.OK, result.Content);
 			}
 			catch (Exception exception) when (ShouldHandleExceptionAsTimeout(exception))
 			{
@@ -118,7 +118,7 @@ namespace dotRMDY.SyncSupport.Services.Implementations
 
 				Logger.LogDebug("Request completed {CallerMethod} ", callerMethod);
 
-				return CallResult.CreateSuccess(result.StatusCode);
+				return CallResult.CreateSuccess(result.StatusCode ?? HttpStatusCode.OK);
 			}
 			catch (Exception exception) when (ShouldHandleExceptionAsTimeout(exception))
 			{
