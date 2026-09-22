@@ -75,7 +75,9 @@ public class WebServiceHelperTest : SutSupportingTest<WebServiceHelper>
 		var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
 		response.Content = new StringContent("{\"code\":\"code\",\"message\":\"message\",\"technicalMessage\":\"technicalMessage\"}");
 		var refitSettings = new RefitSettings();
-		var apiException = await ApiException.Create(new HttpRequestMessage(), HttpMethod.Get, response, refitSettings);
+		var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost/test");
+		response.RequestMessage = request;
+		var apiException = await ApiException.Create(request, HttpMethod.Get, response, refitSettings);
 		var apiResponse = new ApiResponse<SuccessResult>(response, null, refitSettings, apiException);
 		A.CallTo(() => call(cancellationToken)).ReturnsLazily(() => apiResponse);
 
@@ -108,7 +110,9 @@ public class WebServiceHelperTest : SutSupportingTest<WebServiceHelper>
 			C = 5
 		}));
 		var refitSettings = new RefitSettings();
-		var apiException = await ApiException.Create(new HttpRequestMessage(), HttpMethod.Get, response, refitSettings);
+		var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost/test");
+		response.RequestMessage = request;
+		var apiException = await ApiException.Create(request, HttpMethod.Get, response, refitSettings);
 		var apiResponse = new ApiResponse<SuccessResult>(response, null, refitSettings, apiException);
 		A.CallTo(() => call(cancellationToken)).ReturnsLazily(() => apiResponse);
 
