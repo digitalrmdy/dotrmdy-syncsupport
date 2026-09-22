@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Refit;
 
 namespace dotRMDY.SyncSupport.Models
@@ -24,6 +25,14 @@ namespace dotRMDY.SyncSupport.Models
 			: this(null, apiException.GetType().Name, apiException.Message)
 		{
 			ApiException = apiException;
+			var apiError = TryParseApiError(apiException.Content);
+
+			if (apiError != null)
+			{
+				Message = apiError.Message
+				          ?? apiError.Value
+				          ?? Message;
+			}
 		}
 
 		/// <summary>
@@ -59,6 +68,28 @@ namespace dotRMDY.SyncSupport.Models
 			if (string.IsNullOrWhiteSpace(Message))
 			{
 				Message = fallbackMessage;
+			}
+		}
+
+		private static ApiErrorResponse? TryParseApiError(string? content)
+		{
+			if (string.IsNullOrWhiteSpace(content))
+			{
+				return null;
+			}
+
+			try
+			{
+				return JsonSerializer.Deserialize<ApiErrorResponse>(
+					content,
+					new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+			}
+			catch (JsonException)
+			{
+				return null;
 			}
 		}
 	}
