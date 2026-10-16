@@ -198,7 +198,7 @@ namespace dotRMDY.SyncSupport.Models
 			};
 		}
 
-		public static CallResult<T> CreateSuccess<T>(HttpStatusCode statusCode, T data)
+		public static CallResult<T> CreateSuccess<T>(HttpStatusCode statusCode, T? data)
 		{
 			return new CallResult<T>(CallResultStatus.Success, statusCode, data);
 		}
